@@ -1,28 +1,42 @@
 import cv2
+import pyvirtualcam
 from processor import process_frame
 
 def capture_camera():
-    # 1. Создаем объект VideoCapture для захвата с веб-камеры (индекс 0)
+    use_virtual_camera = True
     cap = cv2.VideoCapture(0)
 
     if not cap.isOpened():
         print("Ошибка: не удалось открыть камеру")
     else:
-        while True:
-            # 2. Читаем кадр
-            ret, frame = cap.read() # ret - True/False, frame - сам кадр
+        if not use_virtual_camera:
+            while True:
+                ret, frame = cap.read()
 
-            if not ret:
-                print("Не удалось получить кадр (конец потока?)")
-                break
+                if not ret:
+                    print("Не удалось получить кадр (конец потока?)")
+                    break
 
-            # 3. Отображаем кадр
-            cv2.imshow('Video Capture', process_frame(frame))
+                result_frame = process_frame(frame)
+                cv2.imshow('Video Capture', result_frame)
 
-            # 4. Выход по нажатию 'esc'
-            if cv2.waitKey(1) & 0xFF == 27:
-                break
+                # Выход по нажатию 'esc'
+                if cv2.waitKey(1) & 0xFF == 27:
+                    break
 
-        # 5. Освобождаем ресурсы
+        if use_virtual_camera:
+            with pyvirtualcam.Camera(width=1000, height=750, fps=20) as cam:
+                while True:
+                    ret, frame = cap.read()
+
+                    if not ret:
+                        print("Не удалось получить кадр (конец потока?)")
+                        break
+                    
+                    result_frame = process_frame(frame)
+
+                    cam.send(result_frame)
+                    cam.sleep_until_next_frame()
+
         cap.release()
         cv2.destroyAllWindows()
