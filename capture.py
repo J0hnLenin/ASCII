@@ -1,11 +1,14 @@
 import cv2
 import pyvirtualcam
+
+from filters import SimpleAnimeFilter, KawaiiAnimeFilter, CartoonAnimeFilter
 from processor import process_frame
 
-def capture_camera():
-    use_virtual_camera = True
-    cap = cv2.VideoCapture(0)
 
+def capture_camera():
+    use_virtual_camera = False
+    cap = cv2.VideoCapture(0)
+    filter_anime = KawaiiAnimeFilter()
     if not cap.isOpened():
         print("Ошибка: не удалось открыть камеру")
     else:
@@ -16,8 +19,10 @@ def capture_camera():
                 if not ret:
                     print("Не удалось получить кадр (конец потока?)")
                     break
-
-                result_frame = process_frame(frame)
+                result_frame = filter_anime.apply(frame)
+                result_frame = cv2.medianBlur(result_frame, 11)
+                result_frame = cv2.detailEnhance(result_frame, sigma_s=10, sigma_r=0.15)
+                result_frame = process_frame(result_frame)
                 cv2.imshow('Video Capture', result_frame)
 
                 # Выход по нажатию 'esc'
@@ -32,7 +37,7 @@ def capture_camera():
                     if not ret:
                         print("Не удалось получить кадр (конец потока?)")
                         break
-                    
+                    result_frame = filter_anime.apply(frame)
                     result_frame = process_frame(frame)
 
                     cam.send(result_frame)
