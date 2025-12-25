@@ -22,19 +22,9 @@ def capture_camera(config):
             result_frame = process_frame(config, frame)
             cv2.imshow('Video Capture', result_frame)
 
-            key = cv2.waitKey(1) & 0xFF
-            print(key)
-            if key == KEY_ESC:
+            need_exit = key_catch()
+            if need_exit:
                 break
-            elif key == ord('1'):
-                config.ascii_on = not config.ascii_on
-            elif key == ord('2'):
-                config.anime_on = not config.anime_on
-            elif key == ord('+'):
-                config.ascii_size += 1
-            elif key == ord('-')  and config.ascii_size > 4:
-                config.ascii_size -= 1
-
 
     else:
         ret, frame = cap.read()
@@ -56,5 +46,23 @@ def capture_camera(config):
                 cam.send(result_frame)
                 cam.sleep_until_next_frame()
 
+                need_exit = key_catch()
+                if need_exit:
+                    break
+
     cap.release()
     cv2.destroyAllWindows()
+
+def key_catch(config):
+    key = cv2.waitKey(1) & 0xFF
+    if key == KEY_ESC:
+        return True
+    elif key == ord('1'):
+        config.ascii_on = not config.ascii_on
+    elif key == ord('2'):
+        config.anime_on = not config.anime_on
+    elif key == ord('+'):
+        config.ascii_size += 1
+    elif key == ord('-')  and config.ascii_size > 4:
+        config.ascii_size -= 1
+    return False
