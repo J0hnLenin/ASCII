@@ -22,7 +22,7 @@ def capture_camera(config):
             result_frame = process_frame(config, frame)
             cv2.imshow('Video Capture', result_frame)
 
-            need_exit = key_catch()
+            need_exit = key_catch(config)
             if need_exit:
                 break
 
@@ -46,7 +46,7 @@ def capture_camera(config):
                 cam.send(result_frame)
                 cam.sleep_until_next_frame()
 
-                need_exit = key_catch()
+                need_exit = key_catch(config)
                 if need_exit:
                     break
 
