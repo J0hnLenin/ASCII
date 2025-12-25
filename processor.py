@@ -2,27 +2,31 @@ import sys
 import cv2
 import numpy as np
 
-def process_frame(frame):
-    new_height, new_width = get_new_shape(frame.shape)
-    resized = resize(frame, new_height, new_width)
-    enhanced = enhance(resized)
-    return create_pixel_ascii_image(enhanced)
+def process_frame(config, frame):
+    if config.ascii_on:
+        new_height, new_width = get_new_shape(config, frame.shape)
+        resized = resize(frame, new_height, new_width)
+        enhanced = enhance(resized)
+        frame = create_pixel_ascii_image(config, enhanced)
+    return frame
 
-def get_new_shape(shape):
-    new_width = 100
-    height, original_width = shape[:2]
-    aspect_ratio = height / original_width
+def get_new_shape(config, shape):
+    original_height, original_width = shape[:2]
+    aspect_ratio = original_height / original_width
+
+    new_width = original_width // config.ascii_size 
+
     new_height = int(new_width * aspect_ratio)
     return new_height, new_width
 
 def resize(frame, new_height, new_width):
     return cv2.resize(frame, (new_width, new_height), interpolation=cv2.INTER_AREA)
 
-def create_pixel_ascii_image(frame):
+def create_pixel_ascii_image(config, frame):
     height, width = frame.shape[:2]
-    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    gray = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
     
-    scale_factor = 10
+    scale_factor = config.ascii_size
     result_h = height * scale_factor
     result_w = width * scale_factor
     result = np.zeros((result_h, result_w, 3), dtype=np.uint8)
@@ -36,13 +40,13 @@ def create_pixel_ascii_image(frame):
             x_pos = x * scale_factor
             
             cv2.putText(result, char, (x_pos, y_pos + scale_factor), 
-                       cv2.FONT_HERSHEY_SIMPLEX, 0.3, tuple(map(int, frame[y, x])), 1)
+                       cv2.FONT_HERSHEY_SIMPLEX, 0.3 + scale_factor/50, tuple(map(int, frame[y, x])), 1)
     
     return result
 
 def get_ascii(pixel):
     pixel = int(pixel)
-    chars = list("@80OXWMV%#pwmoxzvc*+=-:.. ")
+    chars = list("@80OXWMV%#pxo*+=-:.. ")
     index = (pixel * (len(chars) - 1)) // 255
     return chars[index]
 
@@ -62,4 +66,4 @@ def enhance(image):
     
     enhanced_hsv = cv2.merge([h, s, v])
     
-    return cv2.cvtColor(enhanced_hsv, cv2.COLOR_HSV2BGR)
+    return cv2.cvtColor(enhanced_hsv, cv2.COLOR_HSV2RGB)

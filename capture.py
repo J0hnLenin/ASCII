@@ -2,41 +2,59 @@ import cv2
 import pyvirtualcam
 from processor import process_frame
 
-def capture_camera():
-    use_virtual_camera = True
+KEY_ESC = 27
+
+def capture_camera(config):
     cap = cv2.VideoCapture(0)
 
     if not cap.isOpened():
         print("Ошибка: не удалось открыть камеру")
+        return
+    
+    if not config.use_virtual_camera:
+        while True:
+            ret, frame = cap.read()
+
+            if not ret:
+                print("Не удалось получить кадр (конец потока?)")
+                break
+            
+            result_frame = process_frame(config, frame)
+            cv2.imshow('Video Capture', result_frame)
+
+            key = cv2.waitKey(1) & 0xFF
+            print(key)
+            if key == KEY_ESC:
+                break
+            elif key == ord('1'):
+                config.ascii_on = not config.ascii_on
+            elif key == ord('2'):
+                config.anime_on = not config.anime_on
+            elif key == ord('+'):
+                config.ascii_size += 1
+            elif key == ord('-')  and config.ascii_size > 4:
+                config.ascii_size -= 1
+
+
     else:
-        if not use_virtual_camera:
+        ret, frame = cap.read()
+
+        if not ret:
+            print("Не удалось получить кадр (конец потока?)")
+            return
+
+        with pyvirtualcam.Camera(width=frame.shape[1], height=frame.shape[0], fps=20) as cam:
             while True:
                 ret, frame = cap.read()
 
                 if not ret:
                     print("Не удалось получить кадр (конец потока?)")
                     break
+                
+                result_frame = process_frame(config, frame)
 
-                result_frame = process_frame(frame)
-                cv2.imshow('Video Capture', result_frame)
+                cam.send(result_frame)
+                cam.sleep_until_next_frame()
 
-                # Выход по нажатию 'esc'
-                if cv2.waitKey(1) & 0xFF == 27:
-                    break
-
-        if use_virtual_camera:
-            with pyvirtualcam.Camera(width=1000, height=750, fps=20) as cam:
-                while True:
-                    ret, frame = cap.read()
-
-                    if not ret:
-                        print("Не удалось получить кадр (конец потока?)")
-                        break
-                    
-                    result_frame = process_frame(frame)
-
-                    cam.send(result_frame)
-                    cam.sleep_until_next_frame()
-
-        cap.release()
-        cv2.destroyAllWindows()
+    cap.release()
+    cv2.destroyAllWindows()

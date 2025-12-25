@@ -1,7 +1,9 @@
+from config import Config
 from capture import capture_camera
 
 def main():
-    capture_camera()
+    config = Config()
+    capture_camera(config)
 
 if __name__ == '__main__':
     main()
