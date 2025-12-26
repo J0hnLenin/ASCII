@@ -2,6 +2,11 @@ import cv2
 import numpy as np
 from abc import ABC, abstractmethod
 
+def get_filter(config):
+    if config.anime_style == 1:
+        return KawaiiAnimeFilter()
+    if config.anime_style == 2:
+        return CartoonAnimeFilter()
 
 class BaseAnimeFilter(ABC):
     """Абстрактный базовый класс для аниме-фильтров"""

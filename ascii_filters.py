@@ -38,12 +38,12 @@ def create_pixel_ascii_image(config, frame):
 
 def get_ascii(pixel):
     pixel = int(pixel)
-    chars = list("@80OXWMV%#pxo*+=-:.. ")
+    chars = list(" ..:-=+*oxp#%VMWXO08@")
     index = (pixel * (len(chars) - 1)) // 255
     return chars[index]
 
 def enhance(image):
-    hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+    hsv = cv2.cvtColor(image, cv2.COLOR_RGB2HSV)
     h, s, v = cv2.split(hsv)
     
     v_mean = np.mean(v)
